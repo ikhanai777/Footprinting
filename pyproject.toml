@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "img2dxf"
+version = "1.0.0"
+description = "Accurate raster image to clean, editable DXF conversion (true lines, arcs, circles, ellipses)"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.22",
+    "scipy>=1.8",
+    "opencv-python-headless>=4.5",
+    "scikit-image>=0.19",
+    "ezdxf>=1.0",
+    "pillow>=9",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.scripts]
+img2dxf = "img2dxf.cli:main"
+
+[tool.setuptools]
+packages = ["img2dxf"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
