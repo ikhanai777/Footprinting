@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dubizzle-scraper"
+version = "0.1.0"
+description = "Scrape dubizzle UAE listings through its Algolia search API"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.scripts]
+dubizzle-scrape = "dubizzle_scraper.cli:main"
+
+[tool.setuptools]
+packages = ["dubizzle_scraper"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
