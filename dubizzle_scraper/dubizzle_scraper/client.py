@@ -7,7 +7,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 # Public, search-only credentials that dubizzle's own web frontend ships to
 # every browser. They may rotate; override with --app-id / --api-key or the
@@ -78,13 +78,24 @@ class AlgoliaClient:
         self._last_call = time.monotonic()
 
     def search(self, index: str, params: Dict[str, Any]) -> Dict[str, Any]:
-        url = f"https://{self.app_id}-dsn.algolia.net/1/indexes/{urllib.parse.quote(index, safe='')}/query"
+        return self._post(f"{urllib.parse.quote(index, safe='')}/query", {"params": encode_params(params)})
+
+    def search_facet(self, index: str, facet: str, text: str, *, filters: Optional[str] = None,
+                     max_hits: int = 100) -> List[Dict[str, Any]]:
+        """Search the values of a searchable facet; returns [{value, count}, ...]."""
+        path = f"{urllib.parse.quote(index, safe='')}/facets/{urllib.parse.quote(facet, safe='')}/query"
+        res = self._post(path, {"params": encode_params({"facetQuery": text, "maxFacetHits": max_hits,
+                                                         "filters": filters})})
+        return res.get("facetHits", [])
+
+    def _post(self, path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        url = f"https://{self.app_id}-dsn.algolia.net/1/indexes/{path}"
         headers = {
             "X-Algolia-Application-Id": self.app_id,
             "X-Algolia-API-Key": self.api_key,
             "Content-Type": "application/json",
         }
-        body = json.dumps({"params": encode_params(params)}).encode()
+        body = json.dumps(payload).encode()
         for attempt in range(self.retries + 1):
             self._throttle()
             try:

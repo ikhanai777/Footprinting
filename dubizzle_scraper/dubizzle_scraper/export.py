@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
+from datetime import datetime, timezone
 from typing import Any, Dict, IO, Iterable, List, Optional
 
 SKIP = {"_highlightResult", "_snippetResult", "_rankingInfo"}
@@ -44,6 +45,12 @@ def flatten(hit: Dict[str, Any], lang: str = "en", max_depth: int = 2) -> Dict[s
     for key, value in hit.items():
         if key not in SKIP:
             walk(key, value, 0)
+    # Derived columns that every section can rely on.
+    if isinstance(hit.get("added"), (int, float)):
+        row["added_date"] = datetime.fromtimestamp(hit["added"], timezone.utc).strftime("%Y-%m-%d %H:%M")
+    url = _localize(hit.get("absolute_url"), lang) or hit.get("permalink") or hit.get("short_url")
+    if url:
+        row["url"] = url
     return row
 
 

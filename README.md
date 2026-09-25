@@ -116,3 +116,9 @@ python -m pytest
 * For drawings that are meant to be axis-aligned (floor plans, panels), add `--snap-ortho 1`.
 * If the fit is too coarse, lower `-t`. If there are too many segments on a noisy image,
   raise `-t` or add `--denoise`.
+
+## Also in this repository
+
+* [`dubizzle_scraper/`](dubizzle_scraper/README.md): search, filter, analyse and export dubizzle UAE listings
+  through its Algolia API, as a CLI and an MCP server. Deploy it for a Hermes agent with
+  [`docs/DUBIZZLE_HERMES_DEPLOY.md`](docs/DUBIZZLE_HERMES_DEPLOY.md).

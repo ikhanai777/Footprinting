@@ -10,24 +10,15 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Dict, Iterator, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, Iterator, List, Optional, Set, Tuple
 
 from .client import AlgoliaClient
+from .sources import TARGETS
 
 log = logging.getLogger(__name__)
 
 # Friendly names -> (index, category path filter or None)
-ALIASES: Dict[str, Tuple[str, Optional[str]]] = {
-    "cars": ("motors.com", "motors/used-cars"),
-    "motors": ("motors.com", None),
-    "classifieds": ("classified.com", None),
-    "jobs": ("jobs.com", None),
-    "community": ("community.com", None),
-    "property-rent": ("property-for-rent-residential.com", None),
-    "property-sale": ("property-for-sale-residential.com", None),
-    "commercial-rent": ("property-for-rent-commercial.com", None),
-    "commercial-sale": ("property-for-sale-commercial.com", None),
-}
+ALIASES: Dict[str, Tuple[str, Optional[str]]] = {name: (t.index, t.category) for name, t in TARGETS.items()}
 
 MAX_WINDOW = 10_000   # hits reachable by paging one query
 # nbHits is only an estimate on large result sets, so split well below the cap.
@@ -90,8 +81,12 @@ def iter_listings(
     numeric_filters: Optional[List[str]] = None,
     limit: Optional[int] = None,
     attributes: Optional[List[str]] = None,
+    keep: Optional[Callable[[Dict[str, Any]], bool]] = None,
 ) -> Iterator[Dict[str, Any]]:
-    """Yield raw Algolia hits for everything matching the query, newest windows first."""
+    """Yield raw Algolia hits for everything matching the query, newest windows first.
+
+    `keep` is an optional client-side predicate; `limit` counts only kept hits.
+    """
     base = {
         "query": query,
         "filters": filters,
@@ -129,6 +124,8 @@ def iter_listings(
             if oid in seen:
                 continue
             seen.add(oid)
+            if keep is not None and not keep(hit):
+                continue
             yield hit
             yielded += 1
             if limit is not None and yielded >= limit:
